@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      sqlite:
+        image: busybox
+        options: --health-cmd "exit 0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.1'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3
+
+      - name: Run RuboCop
+        run: |
+          bundle exec rubocop
+
+      - name: Prepare DB (test)
+        env:
+          RAILS_ENV: test
+        run: |
+          bin/rails db:prepare
+
+      - name: Run tests
+        run: |
+          bin/rails test
+
+      - name: Assets precompile (optional)
+        if: github.event_name == 'push'
+        env:
+          RAILS_ENV: production
+        run: |
+          bin/rails assets:precompile

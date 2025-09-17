@@ -1,0 +1,11 @@
+require: rubocop-rails
+
+AllCops:
+  TargetRubyVersion: 3.3
+  Exclude:
+    - 'bin/**/*'
+    - 'db/**/*'
+    - 'node_modules/**/*'
+
+Layout/LineLength:
+  Max: 120
