@@ -28,7 +28,7 @@ jobs:
 
       - name: Run RuboCop
         run: |
-          bundle exec rubocop
+          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile
 
       - name: Prepare DB (test)
         env:

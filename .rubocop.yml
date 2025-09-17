@@ -7,9 +7,11 @@ AllCops:
   TargetRubyVersion: 3.3
   NewCops: enable
   Exclude:
-    - 'bin/**/*'
-    - 'db/**/*'
+    - 'vendor/**/*'
+    - 'vendor/bundle/**/*'
     - 'node_modules/**/*'
-
+    - 'tmp/**/*'
+    - 'bin/*'
+    - 'db/schema.rb'
 Layout/LineLength:
   Max: 120
