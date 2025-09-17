@@ -1,4 +1,4 @@
-inherit_gem: []
+inherit_gem: {}
 
 plugins:
   - rubocop-rails
