@@ -295,7 +295,6 @@ DEPENDENCIES
   rails (~> 7.1.5, >= 7.1.5.1)
   rubocop
   rubocop-discourse
-  rubocop-rails
   sqlite3 (>= 1.4)
   tzinfo-data
 

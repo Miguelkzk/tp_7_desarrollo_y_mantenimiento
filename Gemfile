@@ -38,9 +38,6 @@ gem "bootsnap", require: false
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'debug', platforms: %i[mri windows]
-  gem 'rubocop', require: false
-  gem 'rubocop-rails', require: false
-  gem 'rubocop-discourse', require: false
 end
 
 group :development do
@@ -48,3 +45,5 @@ group :development do
   # gem "spring"
 end
 gem 'dotenv-rails', groups: %i[development test]
+  gem 'rubocop', require: false
+  gem 'rubocop-discourse', require: false
