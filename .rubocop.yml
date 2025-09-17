@@ -1,7 +1,9 @@
-require: rubocop-rails
+plugins:
+  - rubocop-rails
 
 AllCops:
   TargetRubyVersion: 3.3
+  NewCops: enable
   Exclude:
     - 'bin/**/*'
     - 'db/**/*'
