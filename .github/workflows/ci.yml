@@ -54,6 +54,13 @@ jobs:
           else
             echo "No autocorrections detected."
           fi
+          bundle exec rubocop -A --force-exclusion app config lib test Gemfile Rakefile || true
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::warning::RuboCop applied autocorrections in CI. Run 'bundle exec rubocop -A' locally and commit the changes."
+            git --no-pager diff --name-only
+          else
+            echo "No autocorrections detected."
+          fi
       - name: Prepare DB (test)
         env:
           RAILS_ENV: test
