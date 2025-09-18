@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 class OrderTest < ActiveSupport::TestCase
   def order_valida
     {
       number: 2001,
-      date_at: Date.today,
+      date_at: Time.zone.today,
       status: 'pending'
     }
   end
@@ -23,7 +25,7 @@ class OrderTest < ActiveSupport::TestCase
 
   def test_order_invalida
     order = Order.new(order_invalida)
-    refute order.valid?, 'Se esperaba orden inválida'
+    assert_not order.valid?, 'Se esperaba orden inválida'
     assert_includes order.errors[:number], "can't be blank"
     assert_includes order.errors[:date_at], "can't be blank"
     assert_includes order.errors[:status], "can't be blank"

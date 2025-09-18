@@ -1,4 +1,6 @@
-require "test_helper"
+# frozen_string_literal: true
+
+require 'test_helper'
 class OrderItemTest < ActiveSupport::TestCase
   def order_item_valido
     {
@@ -21,7 +23,7 @@ class OrderItemTest < ActiveSupport::TestCase
 
   def test_order_item_invalido
     order_item = OrderItem.new(**order_item_invalido)
-    refute order_item.valid?, 'Se esperaba order_item inválido'
+    assert_not order_item.valid?, 'Se esperaba order_item inválido'
     assert_includes order_item.errors[:quantity], 'must be greater than 0'
   end
 end

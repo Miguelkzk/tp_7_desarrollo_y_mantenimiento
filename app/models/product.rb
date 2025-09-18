@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Product < ApplicationRecord
   # ASSOCIATIONS
   has_many :order_items
