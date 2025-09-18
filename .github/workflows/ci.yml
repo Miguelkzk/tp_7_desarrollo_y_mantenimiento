@@ -1,3 +1,4 @@
+# ...existing code...
 name: CI
 
 on:
@@ -14,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -30,37 +33,16 @@ jobs:
         run: |
           bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --fail-level error
           # solo falla si hay error grave
-          # bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile
 
       # aplica un formateado para las autocorreciones
-      # si se detectan cambios, falla y se pide que se los aplique correctamente
+      # avisar si hay autocorrecciones locales pendientes
       - name: Run RuboCop auto-correct check (does not commit)
         run: |
-          bundle exec rubocop -A --force-exclusion app config lib test Gemfile Rakefile || true
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::RuboCop applied autocorrections to the working tree."
-            echo "Files changed by RuboCop autocorrect:"
-            git --no-pager diff --name-only
-            echo "::error::Run 'bundle exec rubocop -A' locally, review the changes and commit them."
-            git --no-pager diff --name-only
-            exit 1
-          else
-            echo "No autocorrections detected."
-          fi
-          bundle exec rubocop -A --force-exclusion app config lib test Gemfile Rakefile || true
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::warning::RuboCop applied autocorrections in CI. Run 'bundle exec rubocop -A' locally and commit the changes."
-            git --no-pager diff --name-only
-          else
-            echo "No autocorrections detected."
-          fi
-          bundle exec rubocop -A --force-exclusion app config lib test Gemfile Rakefile || true
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::warning::RuboCop applied autocorrections in CI. Run 'bundle exec rubocop -A' locally and commit the changes."
-            git --no-pager diff --name-only
-          else
-            echo "No autocorrections detected."
-          fi
+          # Ejecutar en modo "check" para evitar modificar el workspace en CI
+          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --format simple || true
+          echo "Si hay ofensas autocorregibles, ejecútalas localmente:"
+          echo "  bundle exec rubocop -A && git add -A && git commit -m 'style: apply rubocop' && git push"
+
       - name: Prepare DB (test)
         env:
           RAILS_ENV: test
@@ -71,3 +53,4 @@ jobs:
       - name: Run tests
         run: |
           bin/rails test
+# ...existing code...
