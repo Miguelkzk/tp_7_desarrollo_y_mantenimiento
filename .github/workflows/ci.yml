@@ -36,13 +36,34 @@ jobs:
 
       # aplica un formateado para las autocorreciones
       # avisar si hay autocorrecciones locales pendientes
-      - name: Run RuboCop auto-correct check (does not commit)
+      - name: Run RuboCop autocorrectable check (fail if any)
         run: |
-          # Ejecutar en modo "check" para evitar modificar el workspace en CI
-          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --format simple || true
-          echo "Si hay ofensas autocorregibles, ejecútalas localmente:"
-          echo "  bundle exec rubocop -A && git add -A && git commit -m 'style: apply rubocop' && git push"
+          # Ejecutar RuboCop en JSON para detectar ofensas autocorregibles sin modificar archivos
+          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --format json > rubocop.json || true
 
+          # Parsear JSON y fallar si hay ofensas autocorregibles; además emitir anotaciones para GitHub Actions
+          ruby -r json -e '
+            data = JSON.parse(File.read("rubocop.json")) rescue {}
+            files = (data["files"] || []).map do |f|
+              correctable = f["offenses"].select { |o| o["correctable"] }
+              { "path" => f["path"], "offenses" => correctable } if correctable.any?
+            end.compact
+            if files.any?
+              puts "::error::RuboCop: se encontraron ofensas autocorregibles en #{files.size} archivos: #{files.map{|f| f["path"]}.join(", ")}"
+              files.each do |f|
+                f["offenses"].each do |o|
+                  line = o.dig("location","start_line") || 1
+                  msg = o["message"].gsub(/\r?\n/, " ")
+                  puts "::error file=#{f["path"]},line=#{line}::#{msg} (#{o["cop_name"]})"
+                end
+              end
+              puts ""
+              puts "Corrige localmente con: bundle exec rubocop -A && git add -A && git commit -m \"style: apply rubocop\" && git push"
+              exit 1
+            else
+              puts "No se detectaron ofensas autocorregibles."
+            end
+          '
       - name: Prepare DB (test)
         env:
           RAILS_ENV: test
