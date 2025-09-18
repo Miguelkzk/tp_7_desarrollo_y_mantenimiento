@@ -32,6 +32,21 @@ jobs:
           # solo falla si hay error grave
           # bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile
 
+      # aplica un formateado para las autocorreciones
+      # si se detectan cambios, falla y se pide que se los aplique correctamente
+      - name: Run RuboCop auto-correct check (does not commit)
+              run: |
+                bundle exec rubocop -A --force-exclusion app config lib test Gemfile Rakefile || true
+                if [ -n "$(git status --porcelain)" ]; then
+                  echo "::error::RuboCop applied autocorrections to the working tree."
+                  echo "Files changed by RuboCop autocorrect:"
+                  git --no-pager diff --name-only
+                  echo "::error::Run 'bundle exec rubocop -A' locally, review the changes and commit them."
+                  git --no-pager diff --name-only
+                  exit 1
+                else
+                  echo "No autocorrections detected."
+                fi
 
       - name: Prepare DB (test)
         env:
@@ -43,10 +58,3 @@ jobs:
       - name: Run tests
         run: |
           bin/rails test
-
-      - name: Assets precompile (optional)
-        if: github.event_name == 'push'
-        env:
-          RAILS_ENV: production
-        run: |
-          bin/rails assets:precompile
