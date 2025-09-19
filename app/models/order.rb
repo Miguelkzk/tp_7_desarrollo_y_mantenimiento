@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Order < ApplicationRecord
   # ASSOCIATIONS
   has_many :order_items
@@ -7,4 +9,8 @@ class Order < ApplicationRecord
   validates :number, presence: true, numericality: { only_integer: true }
   validates :date_at, presence: true
   validates :status, presence: true
+
+  def nuevo_metodo
+    'prueba rubocop'
+  end
 end

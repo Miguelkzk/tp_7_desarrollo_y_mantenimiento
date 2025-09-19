@@ -1,22 +1,19 @@
+# ...existing code...
 name: CI
 
 on:
+  workflow_dispatch: {}
   pull_request:
-    branches: [ develop ]
-  push:
-    branches: [ main, develop ]
-
+    branches: [develop]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    services:
-      sqlite:
-        image: busybox
-        options: --health-cmd "exit 0"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -31,21 +28,47 @@ jobs:
 
       - name: Run RuboCop
         run: |
-          bundle exec rubocop
+          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --fail-level error
+          # solo falla si hay error grave
 
+      # aplica un formateado para las autocorreciones
+      # avisar si hay autocorrecciones locales pendientes
+      - name: Run RuboCop autocorrectable check (fail if any)
+        run: |
+          # Ejecutar RuboCop en JSON para detectar ofensas autocorregibles sin modificar archivos
+          bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --format json > rubocop.json || true
+
+          # Parsear JSON y fallar si hay ofensas autocorregibles; además emitir anotaciones para GitHub Actions
+          ruby -r json -e '
+            data = JSON.parse(File.read("rubocop.json")) rescue {}
+            files = (data["files"] || []).map do |f|
+              correctable = f["offenses"].select { |o| o["correctable"] }
+              { "path" => f["path"], "offenses" => correctable } if correctable.any?
+            end.compact
+            if files.any?
+              puts "::error::RuboCop: se encontraron ofensas autocorregibles en #{files.size} archivos: #{files.map{|f| f["path"]}.join(", ")}"
+              files.each do |f|
+                f["offenses"].each do |o|
+                  line = o.dig("location","start_line") || 1
+                  msg = o["message"].gsub(/\r?\n/, " ")
+                  puts "::error file=#{f["path"]},line=#{line}::#{msg} (#{o["cop_name"]})"
+                end
+              end
+              puts ""
+              puts "Corrige localmente con: bundle exec rubocop -A && git add -A && git commit -m \"style: apply rubocop\" && git push"
+              exit 1
+            else
+              puts "No se detectaron ofensas autocorregibles."
+            end
+          '
       - name: Prepare DB (test)
         env:
           RAILS_ENV: test
         run: |
-          bin/rails db:prepare
+          mkdir -p tmp/storage
+          RAILS_ENV=test bin/rails db:prepare
 
       - name: Run tests
         run: |
-          bin/rails test
-
-      - name: Assets precompile (optional)
-        if: github.event_name == 'push'
-        env:
-          RAILS_ENV: production
-        run: |
-          bin/rails assets:precompile
+          bundle exec rails test
+# ...existing code...

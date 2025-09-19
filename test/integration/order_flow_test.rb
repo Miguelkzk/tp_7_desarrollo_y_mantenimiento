@@ -1,11 +1,13 @@
-require "test_helper"
+# frozen_string_literal: true
+
+require 'test_helper'
 class OrderFlowTest < ActionDispatch::IntegrationTest
   def test_create_order_with_items_and_compute_total
     product1 = products(:one)
     product2 = products(:two)
 
     # create a fresh order in DB
-    order = Order.create(number: 3001, date_at: Date.today, status: 'pending')
+    order = Order.create(number: 3001, date_at: Time.zone.today, status: 'pending')
     assert order.persisted?
 
     # add items
@@ -23,7 +25,7 @@ class OrderFlowTest < ActionDispatch::IntegrationTest
 
     total = order.order_items.sum { |item| item.quantity * item.product.price.to_f }
 
-    expected = 2 * product1.price.to_f + 1 * product2.price.to_f
+    expected = (2 * product1.price.to_f) + (1 * product2.price.to_f)
     assert_in_delta expected, total, 0.001
   end
 end

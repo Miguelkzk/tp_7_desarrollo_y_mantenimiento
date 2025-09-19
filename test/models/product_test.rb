@@ -1,4 +1,6 @@
-require "test_helper"
+# frozen_string_literal: true
+
+require 'test_helper'
 class ProductTest < ActiveSupport::TestCase
   def producto_valido
     {
@@ -23,7 +25,7 @@ class ProductTest < ActiveSupport::TestCase
 
   def test_producto_invalido
     product = Product.new(producto_invalido)
-    refute product.valid?, 'Se esperaba producto inválido'
+    assert_not product.valid?, 'Se esperaba producto inválido'
     assert_includes product.errors[:name], "can't be blank"
     assert_includes product.errors[:price], 'must be greater than or equal to 0'
     assert_includes product.errors[:stock], 'must be greater than or equal to 0'
@@ -31,19 +33,19 @@ class ProductTest < ActiveSupport::TestCase
 
   def test_nombre_en_blanco
     produt = Product.new(producto_valido.merge(name: ''))
-    refute produt.valid?
+    assert_not produt.valid?
     assert_includes produt.errors[:name], "can't be blank"
   end
 
   def test_price_negative
     produt = Product.new(producto_valido.merge(price: -0.01))
-    refute produt.valid?
+    assert_not produt.valid?
     assert_includes produt.errors[:price], 'must be greater than or equal to 0'
   end
 
   def test_stock_no_negativo
     produt = Product.new(producto_valido.merge(stock: -1))
-    refute produt.valid?
+    assert_not produt.valid?
     assert_includes produt.errors[:stock], 'must be greater than or equal to 0'
   end
 end
