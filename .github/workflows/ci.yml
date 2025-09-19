@@ -73,5 +73,5 @@ jobs:
 
       - name: Run tests
         run: |
-          bin/rails test
+          bundle exec rails test
 # ...existing code...
