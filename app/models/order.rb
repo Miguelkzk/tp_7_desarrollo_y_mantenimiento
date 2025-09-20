@@ -11,6 +11,6 @@ class Order < ApplicationRecord
   validates :status, presence: true
 
   def nuevo_metodo
-    'prueba rubocop'
+    "prueba rubocop"
   end
 end
