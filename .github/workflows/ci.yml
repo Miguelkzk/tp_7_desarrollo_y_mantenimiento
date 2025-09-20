@@ -35,10 +35,8 @@ jobs:
       # avisar si hay autocorrecciones locales pendientes
       - name: Run RuboCop autocorrectable check (fail if any)
         run: |
-          # Ejecutar RuboCop en JSON para detectar ofensas autocorregibles sin modificar archivos
           bundle exec rubocop --force-exclusion app config lib test Gemfile Rakefile --format json > rubocop.json || true
 
-          # Parsear JSON y fallar si hay ofensas autocorregibles; además emitir anotaciones para GitHub Actions
           ruby -r json -e '
             data = JSON.parse(File.read("rubocop.json")) rescue {}
             files = (data["files"] || []).map do |f|
@@ -71,4 +69,3 @@ jobs:
       - name: Run tests
         run: |
           bundle exec rails test
-# ...existing code...
